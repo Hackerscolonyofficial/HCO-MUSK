@@ -1,74 +1,93 @@
+
 # HCO Musk
 
-**HCO Musk** is a Python + Termux toolkit for Android camera utilities, location utilities, photo organization, and consent-based surprise links.
+**HCO Musk** is a consent-first Python + Termux surprise-link toolkit by **Azhar Team HCO**.
 
-**Code by Azhar Team HCO**  
-**YouTube:** https://youtube.com/@hackers_colony_tech?si=6Uc1vADFNroqTvUP
+YouTube: https://youtube.com/@hackers_colony_tech?si=6Uc1vADFNroqTvUP
 
 ## Features
-- Get the current phone location with Android permission and open it in Google Maps.
-- List camera information and capture photos using a selected Termux:API camera ID.
-- View and organize JPG/PNG images into date folders.
-- Generate shareable location, camera, and custom surprise links.
-- Colourful terminal interface, 9-to-1 support countdown, and YouTube redirect.
 
-## Important: links and privacy
-The surprise links work across different Wi-Fi/mobile networks **after** the included `web/index.html` is published on a public HTTPS host such as GitHub Pages. A local Termux script alone cannot create a public cross-network link.
+- Custom surprise message links.
+- Location-sharing links that clearly explain the browser permission request.
+- Front/rear camera preview links with explicit user action and browser permission.
+- Photo surprise landing page (does not read a recipient's private gallery).
+- Local web server with public tunnel options: Cloudflare Quick Tunnel, ngrok, and LocalTunnel.
+- Colourful Termux menu and YouTube support-page countdown.
 
-The recipient must open the page, press the action button, and grant browser permission. The page cannot secretly activate a camera or read location. It does not upload the recipient's location or camera images; location is displayed in their browser and camera photos are downloaded locally.
+## Privacy and safe use
 
-Camera/location commands on your own Android phone require the Termux:API Android app, `termux-api` package, and Android permissions. Camera IDs vary by device; check the camera list before choosing front/back IDs.
+The link does not secretly activate a camera or obtain a location. A recipient sees what permission is requested and must press the relevant button and approve the browser prompt.
+
+Location is displayed in their browser and is not sent to HCO Musk.
+
+Camera preview is local to their browser; optional capture downloads the image to their device. This webpage has no upload endpoint.
+
+Do not disguise permission prompts or send surprise links to people who have not agreed to receive them. Only share with people who understand what the page does.
 
 ## Requirements
-- Android + Termux + Python 3
-- Termux:API Android app installed from the same trusted source as Termux
-- `termux-api` package
-- Internet for YouTube and hosted share links
 
-## Install in Termux
+- Android + Termux + Python 3.
+- Internet connection.
+- For tunnel options: `cloudflared`, `ngrok`, or Node.js + LocalTunnel, depending on provider.
+- Browser on recipient's device. Camera and geolocation browser APIs require HTTPS (or localhost).
+
+## Install
+
 ```bash
 pkg update -y && pkg upgrade -y
-pkg install python git termux-api -y
-```
-Install/open the Termux:API Android app separately and grant permissions. Then clone your GitHub repository:
-```bash
-git clone https://github.com/YOUR-USERNAME/HCO-Musk.git
-cd HCO-Musk
+
+pkg install python git cloudflared nodejs -y
+
+npm install -g localtunnel
+
+git clone https://github.com/Hackerscolonyofficial/HCO-MUSK.git
+
+cd HCO-MUSK
+
 chmod +x install.sh
+
 bash install.sh
+
 python hco_musk.py
 ```
-Optional shared storage access:
+
+### ngrok setup (optional)
+
+Create an ngrok account, install the official ngrok agent for your Termux architecture, then configure your token once:
+
 ```bash
-termux-setup-storage
+ngrok config add-authtoken YOUR_NGROK_AUTHTOKEN
 ```
 
-## Publish surprise links (required)
-1. Upload this repository to GitHub with the `main` branch.
-2. Open **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. The included `.github/workflows/pages.yml` publishes the `web/` folder automatically after a push.
-4. Wait for the Pages deployment to finish, then copy the public HTTPS Pages URL shown by GitHub.
-5. In HCO Musk choose **Surprise Link Generator → Set/change webpage URL** and paste that URL.
-6. Generate a location, camera, or custom link. Anyone with internet can open it on another network.
+Do not paste your token into public GitHub files or share it with anyone.
 
-## Menu
-1. Location Tools — current location, Maps, location-request link.
-2. Camera Tools — camera info, front/back capture using device camera ID, camera-request link.
-3. Media Tools — photo folder and date-based organization.
-4. Surprise Link Generator — location, camera, custom link.
-5. System Check — check Termux command availability.
-6. About HCO Musk.
+## How links work
 
-On each launch, the support message is shown, countdown runs from 9 to 1, and Android is asked to open the HCO YouTube channel. Depending on Android app-link settings, it may open the YouTube app or browser. Return to Termux and press Enter.
+1. HCO Musk starts a local web server on port 8765.
+2. Choose a tunnel provider.
+3. The selected provider creates a temporary public HTTPS URL.
+4. HCO Musk appends the selected surprise mode and copies the link if Termux clipboard support is available.
+5. Keep Termux open while the tunnel is running. Press Ctrl+C or choose stop to end it.
 
-## Troubleshooting
-- Missing `termux-*` commands: install Termux:API app and run `pkg install termux-api`.
-- Permission issue: grant Camera/Location permissions in Android Settings for Termux:API.
-- Camera ID error: use Camera Tools → List camera information.
-- Link unavailable: check GitHub Pages deployment and ensure the configured URL is public HTTPS.
+### Tunnel provider notes
+
+- **Cloudflare Quick Tunnel:** no account or domain required; generates a temporary `trycloudflare.com` URL. The link stops when the process stops. Intended for development/testing, not production.
+- **ngrok:** account and authtoken required. The URL is active while the ngrok process runs.
+- **LocalTunnel:** free basic service, requires Node.js/npm. Availability and rate limits may vary.
+- **Auto Select:** tries Cloudflare, then LocalTunnel, then ngrok if installed/configured.
+
+No tunnel provider guarantees availability on every network. Some mobile carriers, firewalls, or restricted networks may block tunnels.
+
+## YouTube redirect
+
+At launch the tool displays the support message, counts down 9 to 1, and asks Android to open the HCO YouTube channel.
+
+Android may open the YouTube app or browser depending on app-link settings. Return to Termux and press Enter.
 
 ## License
-See `LICENSE` for the HCO Musk All Rights Reserved terms. Public availability does not technically prevent copying; the license states the permissions granted by the copyright holder.
+
+See `LICENSE`. All Rights Reserved. This notice does not technically prevent copying; legal protection and enforcement depend on applicable law.
 
 ## Disclaimer
-For personal device utilities and education. Use camera/location features only on your own device or with informed consent. Do not use links to trick people or collect information without their knowledge.
+
+For education and consent-based demonstrations only. Do not use links to deceive, monitor, or collect information from anyone without informed consent.
