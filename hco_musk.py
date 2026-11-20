@@ -1,199 +1,645 @@
+
 #!/usr/bin/env python3
-# HCO Musk | Copyright (c) 2026 HCO Team Azhar. All rights reserved.
-import os, sys, json, time, shutil, subprocess, urllib.parse, webbrowser
+# HCO Musk v1.1.0
+# Copyright (c) 2026 HCO Team Azhar.
+
+import os, sys, json, time, re, shutil, subprocess, threading
+import urllib.parse, urllib.request, socket
 from pathlib import Path
 from datetime import datetime
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+from functools import partial
 
-G="\033[92m"; C="\033[96m"; Y="\033[93m"; R="\033[91m"; M="\033[95m"; W="\033[97m"; B="\033[1m"; X="\033[0m"
-HOME=Path(__file__).resolve().parent
-CFG=HOME/"config.json"
+GREEN="\033[92m"
+CYAN="\033[96m"
+YELLOW="\033[93m"
+RED="\033[91m"
+MAGENTA="\033[95m"
+WHITE="\033[97m"
+BOLD="\033[1m"
+RESET="\033[0m"
+
+ROOT=Path(__file__).resolve().parent
+WEB=ROOT/"web"
+CFG=ROOT/"config.json"
 YT="https://youtube.com/@hackers_colony_tech?si=6Uc1vADFNroqTvUP"
-DEFAULT={"share_page_url":"","photo_folder":str(Path.home()/"storage/dcim/HCO-Musk"),"youtube_url":YT}
-try: config={**DEFAULT,**json.loads(CFG.read_text())}
-except Exception: config=DEFAULT.copy()
 
-def save(): CFG.write_text(json.dumps(config,indent=2))
-def cmd(args,timeout=30):
-    try: return subprocess.run(args,text=True,capture_output=True,timeout=timeout)
-    except FileNotFoundError: print(f"{R}Missing command: {args[0]}{X}")
-    except Exception as e: print(f"{R}{e}{X}")
-    return None
-def pause(): input(f"\n{C}Press Enter to continue...{X}")
-def openurl(url):
-    if shutil.which("termux-open-url"):
-        p=cmd(["termux-open-url",url],15)
-        if p and p.returncode==0: return
-    print(f"{Y}Open manually: {url}{X}")
-    try: webbrowser.open(url)
-    except Exception: pass
+DEFAULT={
+    "youtube_url":YT,
+    "photo_folder":str(Path.home()/"storage/dcim/HCO-Musk"),
+    "port":8765
+}
 
-def support():
+try:
+    CONFIG={**DEFAULT,**json.loads(CFG.read_text(encoding="utf-8"))}
+except Exception:
+    CONFIG=DEFAULT.copy()
+
+
+def save_config():
+    CFG.write_text(json.dumps(CONFIG,indent=2),encoding="utf-8")
+
+
+def clear():
     os.system("clear")
-    print(f"{G}{B}             THIS IS A SUPPORT PAGE{X}\n")
-    print("Now Termux will redirect to our YouTube channel.")
-    print("Please like, subscribe and click on the bell 🔔")
-    print("Then come back to Termux to run the tool.\n")
-    for n in range(9,0,-1):
-        print(f"\r{C}{B}{n}...{X}",end="",flush=True); time.sleep(1)
-    print(f"\r{G}Opening YouTube...{X}       ")
-    openurl(config["youtube_url"])
-    input(f"\n{Y}Welcome back! Press Enter to run HCO Musk.{X}")
+
+
+def pause():
+    input(f"\n{CYAN}Press Enter to continue...{RESET}")
+
 
 def banner():
-    os.system("clear")
-    print(G+B+r"""
+    clear()
+    print(GREEN+BOLD+r"""
  _   _  ____ ___  __  __ _   _ ____  _  __
 | | | |/ ___/ _ \|  \/  | | | / ___|| |/ /
 | |_| | |  | | | | |\/| | | | \___ \| ' /
 |  _  | |__| |_| | |  | | |_| |___) | . \
 |_| |_|\____\___/|_|  |_|\___/|____/|_|\_\
-""" + X)
-    print(f"{C}{B}                  by HCO Team Azhar{X}")
-    print(f"{Y}        Camera • Location • Media • Surprise Links{X}\n")
+""" + RESET)
 
-def need_api():
-    if not shutil.which("termux-location") and not shutil.which("termux-camera-photo"):
-        print(f"{R}Termux:API commands missing. Install Termux:API app, then run: pkg install termux-api{X}")
-        return False
-    return True
+    print(CYAN+BOLD+"                  by HCO Team Azhar"+RESET)
+    print(YELLOW+"        Consent-based Surprise Link Toolkit"+RESET+"\n")
 
-def location():
-    if not shutil.which("termux-location"):
-        print(f"{R}Run: pkg install termux-api and install the Termux:API Android app.{X}"); return
-    print(f"{Y}Waiting for Android location permission...{X}")
-    p=cmd(["termux-location","-p","gps","-r","once"],60)
-    if not p or p.returncode: print(f"{R}Location unavailable. Check GPS and app permission.{X}"); return
+
+def support_page():
+    clear()
+
+    print(GREEN+BOLD+"             THIS IS A SUPPORT PAGE"+RESET+"\n")
+    print("Now Termux will redirect to our YouTube channel.")
+    print("Please like, subscribe and click on the bell 🔔")
+    print("Then come back to Termux to run the tool.\n")
+
+    for n in range(9,0,-1):
+        print(f"\r{CYAN}{BOLD}{n}...{RESET}",end="",flush=True)
+        time.sleep(1)
+
+    print(f"\r{GREEN}Opening YouTube...{RESET}       ")
+
+    if shutil.which("termux-open-url"):
+        try:
+            subprocess.Popen(["termux-open-url",YT])
+        except Exception:
+            print(YT)
+    else:
+        print("Open:",YT)
+
+    input(f"\n{YELLOW}Welcome back! Press Enter to run HCO Musk.{RESET}")
+
+
+def local_ip():
+    s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+
     try:
-        d=json.loads(p.stdout); lat=float(d["latitude"]); lon=float(d["longitude"])
-        print(f"{G}Latitude: {lat}\nLongitude: {lon}{X}")
-        print("Accuracy:",d.get("accuracy","not reported"),"m")
-        url=f"https://www.google.com/maps?q={lat},{lon}"
-        print("Maps:",url)
-        return lat,lon
-    except Exception: print(f"{R}Could not parse location response.{X}")
+        s.connect(("1.1.1.1",80))
+        ip=s.getsockname()[0]
+    except Exception:
+        ip="127.0.0.1"
+    finally:
+        s.close()
 
-def share_base():
-    url=config.get("share_page_url","").strip()
-    if not url:
-        print(f"{Y}Publish web/index.html with GitHub Pages first.{X}")
-        url=input("Paste your public GitHub Pages HTTPS URL: ").strip()
-        if url: config["share_page_url"]=url.rstrip("/")+"/"; save()
-    if not url.startswith("https://"):
-        print(f"{R}A public HTTPS webpage URL is required for cross-network links.{X}"); return ""
-    return url.rstrip("/")+"/"
+    return ip
 
-def make_link(mode):
-    base=share_base()
-    if not base: return
-    title=input("Surprise title (Enter for default): ").strip() or {"location":"Location Surprise","camera":"Camera Surprise","custom":"A Little Surprise"}[mode]
-    msg=input("Optional message: ").strip() if mode=="custom" else ""
-    params={"mode":mode,"title":title}
-    if msg: params["message"]=msg
-    link=base+"?"+urllib.parse.urlencode(params)
-    print(f"\n{G}{B}SURPRISE LINK READY!{X}\n{C}{link}{X}")
-    print("Recipient must open it and personally approve browser permissions.")
-    print("The included page does not upload their location or camera images.")
-    if shutil.which("termux-clipboard-set"): cmd(["termux-clipboard-set",link])
-    print("1. Preview link\n0. Back")
-    if input("Select: ").strip()=="1": openurl(link)
 
-def loc_menu():
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self,fmt,*args):
+        pass
+
+
+class LinkServer:
+
+    def __init__(self,port):
+        handler=partial(QuietHandler,directory=str(WEB))
+        self.httpd=ThreadingHTTPServer(("127.0.0.1",port),handler)
+        self.thread=threading.Thread(
+            target=self.httpd.serve_forever,
+            daemon=True
+        )
+
+    def start(self):
+        self.thread.start()
+
+    def stop(self):
+        self.httpd.shutdown()
+        self.httpd.server_close()
+
+
+def url_for(base,mode,title,message=""):
+    q={"mode":mode,"title":title}
+
+    if message:
+        q["message"]=message
+
+    return base.rstrip("/")+"/?"+urllib.parse.urlencode(q)
+
+
+def copy_link(url):
+    if shutil.which("termux-clipboard-set"):
+        try:
+            p=subprocess.run(
+                ["termux-clipboard-set",url],
+                capture_output=True,
+                timeout=8
+            )
+
+            if p.returncode==0:
+                print(GREEN+"Link copied to clipboard."+RESET)
+
+        except Exception:
+            pass
+
+
+def open_link(url):
+    if shutil.which("termux-open-url"):
+        try:
+            subprocess.Popen(["termux-open-url",url])
+            return
+        except Exception:
+            pass
+
+    print("Preview URL:",url)
+
+
+def start_tunnel(provider,port):
+
+    if provider=="cloudflare":
+
+        if not shutil.which("cloudflared"):
+            print(RED+"cloudflared not installed. Try: pkg install cloudflared -y"+RESET)
+            return None
+
+        command=[
+            "cloudflared",
+            "tunnel",
+            "--url",
+            f"http://127.0.0.1:{port}",
+            "--no-autoupdate"
+        ]
+
+    elif provider=="ngrok":
+
+        if not shutil.which("ngrok"):
+            print(RED+"ngrok not installed. Install the official ngrok agent first."+RESET)
+            return None
+
+        command=["ngrok","http",str(port),"--log","stdout"]
+
+    elif provider=="localtunnel":
+
+        if not shutil.which("lt"):
+            print(RED+"LocalTunnel CLI not installed. Run: npm install -g localtunnel"+RESET)
+            return None
+
+        command=["lt","--port",str(port)]
+
+    else:
+        return None
+
+    print(YELLOW+f"Starting {provider} tunnel..."+RESET)
+
+    try:
+        proc=subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
+        )
+    except Exception as e:
+        print(RED+f"Could not start tunnel: {e}"+RESET)
+        return None
+
+    lines=[]
+
+    def reader():
+        try:
+            for line in proc.stdout:
+                lines.append(line.rstrip())
+
+                if len(lines)>100:
+                    del lines[:30]
+
+        except Exception:
+            pass
+
+    threading.Thread(target=reader,daemon=True).start()
+
+    found=None
+    deadline=time.time()+35
+
+    while time.time()<deadline and proc.poll() is None:
+
+        text="\n".join(lines)
+
+        if provider=="cloudflare":
+
+            m=re.search(
+                r"https://[a-zA-Z0-9-]+\.trycloudflare\.com",
+                text
+            )
+
+            if m:
+                found=m.group(0)
+
+        elif provider=="localtunnel":
+
+            m=re.search(
+                r"https://[a-zA-Z0-9.-]+\.loca\.lt",
+                text
+            )
+
+            if m:
+                found=m.group(0)
+
+            if not found:
+                m=re.search(
+                    r"https://[a-zA-Z0-9.-]+\.localtunnel\.me",
+                    text
+                )
+
+                if m:
+                    found=m.group(0)
+
+        elif provider=="ngrok":
+
+            try:
+                with urllib.request.urlopen(
+                    "http://127.0.0.1:4040/api/tunnels",
+                    timeout=1
+                ) as r:
+
+                    data=json.loads(r.read().decode())
+
+                for tunnel in data.get("tunnels",[]):
+
+                    if tunnel.get("public_url","").startswith("https://"):
+                        found=tunnel["public_url"]
+                        break
+
+            except Exception:
+                pass
+
+        if found:
+            return proc,found
+
+        time.sleep(.5)
+
+    print(RED+"Could not detect a public URL. Provider output:"+RESET)
+    print("\n".join(lines[-12:]) or "No output received.")
+
+    try:
+        proc.terminate()
+    except Exception:
+        pass
+
+    return None
+
+
+def tunnel_menu():
+
+    print(f"\n{MAGENTA}{BOLD}LINK SERVER MANAGER{RESET}")
+    print("1. Cloudflare Quick Tunnel (no account; temporary)")
+    print("2. ngrok (account + authtoken required)")
+    print("3. LocalTunnel (Node.js/npm required)")
+    print("4. Auto Select (Cloudflare → LocalTunnel → ngrok)")
+    print("0. Back")
+
+    c=input(f"\n{GREEN}HCO Musk > {RESET}").strip()
+
+    return {
+        "1":"cloudflare",
+        "2":"ngrok",
+        "3":"localtunnel",
+        "4":"auto"
+    }.get(c)
+
+
+def generate_link(mode):
+
+    if not WEB.joinpath("index.html").exists():
+        print(RED+"Missing web/index.html. Restore the web folder from the repository."+RESET)
+        return
+
+    title=input(
+        "Surprise title [A Surprise for You]: "
+    ).strip() or "A Surprise for You"
+
+    message=""
+
+    if mode=="custom":
+        message=input("Your surprise message: ").strip() or "There is a surprise waiting for you!"
+
+    try:
+        port=int(CONFIG.get("port",8765))
+    except Exception:
+        port=8765
+
+    server=None
+    tunnel_proc=None
+    public=None
+
+    try:
+        server=LinkServer(port)
+        server.start()
+
+    except OSError:
+        print(RED+f"Could not start local web server on port {port}. Is another HCO Musk session running?"+RESET)
+        return
+
+    print(f"{GREEN}Local page started at http://127.0.0.1:{port}{RESET}")
+    print("\nChoose a public link provider:")
+
+    provider=tunnel_menu()
+
+    if provider is None:
+        server.stop()
+        return
+
+    providers=(
+        ["cloudflare","localtunnel","ngrok"]
+        if provider=="auto"
+        else [provider]
+    )
+
+    for p in providers:
+
+        result=start_tunnel(p,port)
+
+        if result:
+            tunnel_proc,public=result
+            break
+
+    if not public:
+        server.stop()
+        print(YELLOW+"No tunnel started. Install/configure a provider and try again."+RESET)
+        return
+
+    share=url_for(public,mode,title,message)
+
+    print(f"\n{GREEN}{BOLD}YOUR SURPRISE LINK IS READY!{RESET}")
+    print(CYAN+share+RESET)
+
+    print(
+        YELLOW+
+        "Share only with people who expect this link. The tunnel is public while running."
+        +RESET
+    )
+
+    copy_link(share)
+
+    print("\n1. Preview in browser")
+    print("2. Keep link server running (press Ctrl+C to stop)")
+    print("0. Stop and return")
+
+    action=input(f"{GREEN}Choose: {RESET}").strip()
+
+    if action=="1":
+        open_link(share)
+
+    if action=="2":
+
+        print(
+            YELLOW+
+            "Server/tunnel running. Keep Termux open; press Ctrl+C to stop."
+            +RESET
+        )
+
+        try:
+            while tunnel_proc.poll() is None:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
+
+    try:
+        if tunnel_proc and tunnel_proc.poll() is None:
+            tunnel_proc.terminate()
+    except Exception:
+        pass
+
+    server.stop()
+
+    print(GREEN+"Local server and tunnel stopped."+RESET)
+
+
+def surprise_menu():
+
     while True:
-        print(f"\n{M}{B}LOCATION TOOLS{X}\n1. Get my location\n2. Open my location in Maps\n3. Create location surprise link\n0. Back")
-        c=input(f"{G}HCO Musk > {X}").strip()
-        if c=="0": return
-        if c=="1": location()
-        elif c=="2":
-            got=location()
-            if got: openurl(f"https://www.google.com/maps?q={got[0]},{got[1]}")
-        elif c=="3": make_link("location")
-        else: print(f"{R}Invalid option{X}")
+
+        print(f"\n{MAGENTA}{BOLD}SURPRISE LINK GENERATOR{RESET}")
+        print("1. Custom Surprise Message")
+        print("2. Location Sharing Link")
+        print("3. Camera Preview Link")
+        print("4. Photo Surprise Page")
+        print("5. Create My Own Surprise")
+        print("0. Back")
+
+        c=input(f"\n{GREEN}HCO Musk > {RESET}").strip()
+
+        modes={
+            "1":"custom",
+            "2":"location",
+            "3":"camera",
+            "4":"photo",
+            "5":"custom"
+        }
+
+        if c=="0":
+            return
+
+        if c in modes:
+            generate_link(modes[c])
+        else:
+            print(RED+"Invalid option."+RESET)
+
         pause()
+
 
 def camera_menu():
+
     while True:
-        print(f"\n{M}{B}CAMERA TOOLS{X}\n1. List camera information\n2. Capture front camera\n3. Capture back camera\n4. Create camera surprise link\n0. Back")
-        c=input(f"{G}HCO Musk > {X}").strip()
-        if c=="0": return
+
+        print(f"\n{MAGENTA}{BOLD}CAMERA TOOLS{RESET}")
+        print("1. Generate Front Camera Preview Link")
+        print("2. Generate Rear Camera Preview Link")
+        print("3. Camera Permission & Compatibility Guide")
+        print("0. Back")
+
+        c=input(f"\n{GREEN}HCO Musk > {RESET}").strip()
+
+        if c=="0":
+            return
+
         if c=="1":
-            p=cmd(["termux-camera-info"])
-            if p: print(p.stdout or p.stderr)
-        elif c in ("2","3"):
-            if not shutil.which("termux-camera-photo"):
-                print(f"{R}Install Termux:API app and run pkg install termux-api{X}")
-            else:
-                print("Camera IDs vary by device. Check option 1. Common defaults: front=1, back=0.")
-                cam=input("Enter camera ID: ").strip()
-                if not cam: cam="1" if c=="2" else "0"
-                if not cam.isdigit(): print(f"{R}Camera ID must be numeric.{X}")
-                else:
-                    folder=Path(config["photo_folder"]).expanduser(); folder.mkdir(parents=True,exist_ok=True)
-                    kind="front" if c=="2" else "back"
-                    target=folder/f"HCO_Musk_{kind}_{datetime.now():%Y%m%d_%H%M%S}.jpg"
-                    print("Android may ask for camera permission.")
-                    p=cmd(["termux-camera-photo","-c",cam,str(target)],60)
-                    if p and p.returncode==0 and target.exists(): print(f"{G}Saved: {target}{X}")
-                    else: print(f"{R}Capture failed. Check ID and permissions.{X}")
-        elif c=="4": make_link("camera")
-        else: print(f"{R}Invalid option{X}")
+            generate_link("camera-front")
+
+        elif c=="2":
+            generate_link("camera-rear")
+
+        elif c=="3":
+            print("The recipient's browser asks for camera permission after they press Start Camera.")
+            print("Camera preview stays in their browser; HCO Musk does not upload or record it.")
+
+        else:
+            print(RED+"Invalid option."+RESET)
+
         pause()
+
+
+def location_menu():
+
+    while True:
+
+        print(f"\n{MAGENTA}{BOLD}LOCATION TOOLS{RESET}")
+        print("1. Generate Location Sharing Link")
+        print("2. Generate Map Surprise Link")
+        print("3. Location Permission Information")
+        print("0. Back")
+
+        c=input(f"\n{GREEN}HCO Musk > {RESET}").strip()
+
+        if c=="0":
+            return
+
+        if c=="1":
+            generate_link("location")
+
+        elif c=="2":
+            generate_link("location-map")
+
+        elif c=="3":
+            print("The recipient sees a clear location-sharing explanation.")
+            print("Their browser requests location only after they press Share My Location.")
+            print("The coordinates are shown to them in their browser; HCO Musk does not receive them.")
+
+        else:
+            print(RED+"Invalid option."+RESET)
+
+        pause()
+
 
 def media_menu():
+
     while True:
-        folder=Path(config["photo_folder"]).expanduser()
-        print(f"\n{M}{B}MEDIA TOOLS{X}\n1. Show photo folder\n2. Organize loose JPG/PNG into date folders\n3. Change photo folder\n0. Back")
-        c=input(f"{G}HCO Musk > {X}").strip()
-        if c=="0": return
-        folder.mkdir(parents=True,exist_ok=True)
+
+        print(f"\n{MAGENTA}{BOLD}MEDIA TOOLS{RESET}")
+        print("1. Generate Photo Surprise Page")
+        print("2. Open local HCO photo folder")
+        print("0. Back")
+
+        c=input(f"\n{GREEN}HCO Musk > {RESET}").strip()
+
+        if c=="0":
+            return
+
         if c=="1":
-            print(folder)
-            for f in sorted(folder.iterdir()): print(("DIR " if f.is_dir() else "FILE")+f" {f.name}")
+            generate_link("photo")
+
         elif c=="2":
-            files=[f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in (".jpg",".jpeg",".png")]
-            for f in files:
-                dest=folder/datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d"); dest.mkdir(exist_ok=True)
-                target=dest/f.name
-                if target.exists(): target=dest/f"{f.stem}_{int(time.time())}{f.suffix}"
-                shutil.move(str(f),str(target))
-            print(f"{G}Organized {len(files)} image(s).{X}")
-        elif c=="3":
-            p=input("New full folder path: ").strip()
-            if p: config["photo_folder"]=str(Path(p).expanduser()); save()
-        else: print(f"{R}Invalid option{X}")
+
+            folder=Path(CONFIG["photo_folder"]).expanduser()
+            folder.mkdir(parents=True,exist_ok=True)
+
+            print("Photo folder:",folder)
+
+            for p in sorted(folder.iterdir()):
+                print(p.name)
+
+        else:
+            print(RED+"Invalid option."+RESET)
+
         pause()
 
-def link_menu():
-    while True:
-        print(f"\n{M}{B}SURPRISE LINK GENERATOR{X}\n1. Location surprise link\n2. Camera surprise link\n3. Custom surprise link\n4. Set/change published webpage URL\n0. Back")
-        c=input(f"{G}HCO Musk > {X}").strip()
-        if c=="0": return
-        if c=="1": make_link("location")
-        elif c=="2": make_link("camera")
-        elif c=="3": make_link("custom")
-        elif c=="4": config["share_page_url"]=""; share_base()
-        else: print(f"{R}Invalid option{X}")
-        pause()
+
+def system_check():
+
+    print(f"\n{MAGENTA}{BOLD}SYSTEM CHECK{RESET}")
+
+    for name in (
+        "python",
+        "cloudflared",
+        "ngrok",
+        "lt",
+        "npm",
+        "termux-open-url",
+        "termux-clipboard-set"
+    ):
+
+        status=(
+            GREEN+"AVAILABLE"+RESET
+            if shutil.which(name)
+            else YELLOW+"NOT INSTALLED"+RESET
+        )
+
+        print(f"{name:<22}{status}")
+
+    print("\nCloudflare Quick Tunnel is temporary and stops when its process exits.")
+    print("ngrok requires an account and configured authtoken.")
+    print("LocalTunnel requires Node.js/npm.")
+
+    pause()
+
 
 def main():
-    support()
+
+    support_page()
+
     while True:
+
         banner()
-        print(f"{W}{B}MAIN MENU{X}")
-        print(f"{G}01.{X} Location Tools\n{G}02.{X} Camera Tools\n{G}03.{X} Media Tools\n{G}04.{X} Surprise Link Generator\n{G}05.{X} System Check\n{G}06.{X} About HCO Musk\n{R}00.{X} Exit")
-        c=input(f"\n{C}{B}HCO Musk @ Termux > {X}").strip().lower()
-        if c in ("1","01"): loc_menu()
-        elif c in ("2","02"): camera_menu()
-        elif c in ("3","03"): media_menu()
-        elif c in ("4","04"): link_menu()
+
+        print(WHITE+BOLD+"MAIN MENU"+RESET)
+
+        print(GREEN+"01."+RESET+" Surprise Link Generator")
+        print(GREEN+"02."+RESET+" Camera Tools")
+        print(GREEN+"03."+RESET+" Location Tools")
+        print(GREEN+"04."+RESET+" Media Tools")
+        print(GREEN+"05."+RESET+" Link Server Manager")
+        print(GREEN+"06."+RESET+" System Check")
+        print(GREEN+"07."+RESET+" About HCO Musk")
+        print(RED+"00."+RESET+" Exit")
+
+        c=input(
+            f"\n{CYAN}{BOLD}HCO Musk @ Termux > {RESET}"
+        ).strip().lower()
+
+        if c in ("1","01"):
+            surprise_menu()
+
+        elif c in ("2","02"):
+            camera_menu()
+
+        elif c in ("3","03"):
+            location_menu()
+
+        elif c in ("4","04"):
+            media_menu()
+
         elif c in ("5","05"):
-            for x in ("termux-location","termux-camera-info","termux-camera-photo","termux-open-url","termux-clipboard-set"):
-                print(f"{x:<25}{G+'AVAILABLE'+X if shutil.which(x) else Y+'NOT FOUND'+X}")
-            print("Share page:",config["share_page_url"] or "not configured"); pause()
+            print("Select a tunnel provider when generating a surprise link.")
+            system_check()
+
         elif c in ("6","06"):
-            print(f"{G}HCO Musk v1.0.0 — Code by Azhar Team HCO{X}\n{YT}"); pause()
-        elif c in ("0","00","q","exit"): print(f"{G}Thanks for using HCO Musk!{X}"); break
-        else: print(f"{R}Invalid option.{X}"); time.sleep(.7)
+            system_check()
+
+        elif c in ("7","07"):
+            print(GREEN+"HCO Musk v1.1.0 — Code by Azhar Team HCO"+RESET)
+            print(YT)
+            pause()
+
+        elif c in ("0","00","q","exit"):
+            print(GREEN+"Thanks for using HCO Musk!"+RESET)
+            break
+
+        else:
+            print(RED+"Invalid option."+RESET)
+            time.sleep(.7)
+
 
 if __name__=="__main__":
-    try: main()
-    except KeyboardInterrupt: print(f"\n{Y}Stopped by user.{X}"); sys.exit(0)
+
+    try:
+        main()
+
+    except KeyboardInterrupt:
+        print("\nStopped by user.")
+        sys.exit(0)
